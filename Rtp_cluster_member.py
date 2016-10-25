@@ -27,7 +27,7 @@ import sys
 sys.path.append('..')
 
 from sippy_lite.Rtp_proxy_client import Rtp_proxy_client
-from sippy_lite.Timeout import Timeout
+from sippy_lite.Timeout import TimeoutInact
 
 class rc_filter(object):
     a = None
@@ -63,7 +63,7 @@ class Rtp_cluster_member(Rtp_proxy_client):
     cmd_out_address = None
     stats_cache = None
 
-    def __init__(self, name, global_config, address, cmd_out_address):
+    def __init__(self, name, global_config, address, cmd_out_address, **kwargs):
         self.call_id_map = []
         self.call_id_map_old = []
         self.name = name
@@ -75,8 +75,11 @@ class Rtp_cluster_member(Rtp_proxy_client):
             bind_address = (cmd_out_address, 0)
         else:
             bind_address = None
-        Rtp_proxy_client.__init__(self, global_config, address, bind_address = bind_address)
-        self.timer = Timeout(self.call_id_map_aging, 600, -1)
+        Rtp_proxy_client.__init__(self, global_config, address,
+          bind_address = bind_address, **kwargs)
+        self.timer = TimeoutInact(self.call_id_map_aging, 600, -1)
+        self.timer.spread_runs(0.1)
+        self.timer.go()
 
     def reconnect(self, address):
         if self.cmd_out_address != None:
@@ -108,12 +111,16 @@ class Rtp_cluster_member(Rtp_proxy_client):
 
     def go_online(self):
         #print 'go_online', self
-        if not self.online:
-            self.global_config['_sip_logger'].write('RTPproxy "%s" has changed ' \
-              'status from offline to online' % self.name)
-            if self.on_state_change != None:
-                self.on_state_change(self, True)
+        online_pre = self.online
+        # Rtp_proxy_client may or may not decide to change actual status
         Rtp_proxy_client.go_online(self)
+        if online_pre or not self.online:
+            return
+        self.global_config['_sip_logger'].write('RTPproxy "%s" has changed ' \
+          'status from offline to online' % self.name)
+        if self.on_state_change != None:
+            self.on_state_change(self, True)
+        #print 'exit go_online', self, self.online
 
     def go_offline(self):
         #print 'go_offline', self
