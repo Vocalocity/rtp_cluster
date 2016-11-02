@@ -87,10 +87,10 @@ if __name__ == '__main__':
     foreground = False
     dry_run = False
     debug_threads = False
-    pidfile = '/var/run/rtp_cluster.pid'
-    logfile = '/var/log/rtp_cluster.log'
-    csockfile = '/var/run/rtp_cluster.sock'
-    global_config['conffile'] = '/usr/local/etc/rtp_cluster.xml'
+    pidfile = '/var/run/rtpcluster/rtpcluster.pid'
+    logfile = '/var/log/rtpcluster/rtpcluster.log'
+    csockfile = '/var/run/rtpcluster/rtpcluster.sock'
+    global_config['conffile'] = '/usr/local/rtpcluster/etc/rtpcluster.xml'
     global_config['_sip_address'] = MyAddress()
     for o, a in opts:
         if o == '-f':
