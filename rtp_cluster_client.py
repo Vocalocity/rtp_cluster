@@ -52,7 +52,7 @@ if __name__ == '__main__':
         usage()
     if len(args) == 0:
         usage()
-    cmdfile = 'unix:/var/run/rtp_cluster.sock'
+    cmdfile = 'unix:/var/run/rtpcluster/rtpcluster.sock'
     for o, a in opts:
         if o == '-s':
             cmdfile = a.strip()
