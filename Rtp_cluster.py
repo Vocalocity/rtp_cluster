@@ -39,8 +39,8 @@ from sippy_lite.Timeout import TimeoutInact
 from random import random
 
 def is_dst_local(destination_ip):
-    #if destination_ip == '192.168.22.11':
-    #    return True
+    if destination_ip.startswith('10.'):
+        return True
     return False
 
 class Broadcaster(object):
