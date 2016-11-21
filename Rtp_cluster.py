@@ -39,6 +39,7 @@ from sippy_lite.Timeout import TimeoutInact
 from random import random
 
 def is_dst_local(destination_ip):
+    #if destination_ip.startswith('10.') or destination_ip.startswith('192.168.'):
     if destination_ip.startswith('10.'):
         return True
     return False
@@ -292,7 +293,8 @@ class Rtp_cluster(object):
               req_lip != rtpp.lan_address:
                 result = '%s %s' % (result_parts[0], rtpp.wan_address)
             elif result_parts[0] != '0' and req_lip == None:
-                result = '%s %s' % (result_parts[0], rtpp.lan_address)
+                result = '%s %s' % (result_parts[0], rtpp.wan_address)
+                #result = '%s %s' % (result_parts[0], rtpp.lan_address)
         #    result = '%s %s' % (result_parts[0], '192.168.1.22')
         #print 'down clim.send', result
         response = result + '\n'
