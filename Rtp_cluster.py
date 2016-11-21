@@ -31,10 +31,10 @@ from DNRelay import DNRelay
 import sys
 sys.path.append('..')
 
-from sippy_lite.Cli_server_local import Cli_server_local
-from sippy_lite.Udp_server import Udp_server, Udp_server_opts
-from sippy_lite.Rtp_proxy_cmd import Rtp_proxy_cmd, Rtpp_stats
-from sippy_lite.Timeout import TimeoutInact
+from sippy_lite.sippy.Cli_server_local import Cli_server_local
+from sippy_lite.sippy.Udp_server import Udp_server, Udp_server_opts
+from sippy_lite.sippy.Rtp_proxy_cmd import Rtp_proxy_cmd, Rtpp_stats
+from sippy_lite.sippy.Timeout import TimeoutInact
 
 from random import random
 
@@ -385,10 +385,11 @@ class Rtp_cluster(object):
             self.pending.append(rtpp)
 
     def bring_down(self, rtpp):
+        #print 'bring_down', self, rtpp
         if not rtpp.is_local and self.dnrelay != None:
             self.dnrelay.disallow_from(rtpp.address)
         if rtpp in self.active:
-            if rtpp.active_sessions in (0, None):
+            if len(rtpp.call_id_map) == 0 or rtpp.active_sessions in (0, None):
                 self.active.remove(rtpp)
                 rtpp.shutdown()
                 return
@@ -399,7 +400,7 @@ class Rtp_cluster(object):
         rtpp.shutdown()
 
     def rtpp_active_change(self, rtpp, active_sessions):
-        if rtpp.status == 'DRAINING' and active_sessions == 0:
+        if rtpp.status == 'DRAINING' and (len(rtpp.call_id_map) == 0 or active_sessions == 0):
             if rtpp in self.pending:
                 self.pending.remove(rtpp)
             else:
