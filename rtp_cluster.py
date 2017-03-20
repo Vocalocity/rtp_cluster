@@ -76,7 +76,7 @@ if __name__ == '__main__':
     global_config = {}
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'fP:c:L:s:o:dD')
+        opts, args = getopt.getopt(sys.argv[1:], 'fP:c:L:s:o:dDb:')
     except getopt.GetoptError:
         usage()
 
@@ -92,6 +92,7 @@ if __name__ == '__main__':
     csockfile = '/var/run/rtpcluster/rtpcluster.sock'
     global_config['conffile'] = '/usr/local/rtpcluster/etc/rtpcluster.xml'
     global_config['_sip_address'] = MyAddress()
+    global_config['rcv_buf_size'] = 16777216 
     for o, a in opts:
         if o == '-f':
             foreground = True
@@ -120,6 +121,9 @@ if __name__ == '__main__':
             continue
         if o == '-D':
             debug_threads = True
+            continue
+        if o == 'b':
+            global_config['rcv_buf_size'] = int(a.strip())
             continue
 
     sip_logger.write(' o reading config "%s"...' % \

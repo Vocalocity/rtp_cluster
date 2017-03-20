@@ -185,6 +185,7 @@ class Udp_server(object):
     def __init__(self, global_config, uopts):
         self.uopts = uopts.getCopy()
         self.skt = socket.socket(self.uopts.family, socket.SOCK_DGRAM)
+        sip_logger = global_config['_sip_logger']
         if self.uopts.laddress != None:
             ai = socket.getaddrinfo(self.uopts.laddress[0], None, self.uopts.family)
             if self.uopts.family == socket.AF_INET:
@@ -196,6 +197,8 @@ class Udp_server(object):
             if hasattr(socket, 'SO_REUSEPORT') and \
               (self.uopts.flags & socket.SO_REUSEPORT) != 0:
                 self.skt.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            sip_logger.write("Current SO_RCVBUF setting: {0} ".format(global_config['rcv_buf_size']))
+            self.skt.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, global_config['rcv_buf_size'])
             self.skt.bind(address)
         self.sendqueue = []
         self.stats = [0, 0, 0]
