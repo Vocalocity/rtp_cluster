@@ -122,7 +122,7 @@ if __name__ == '__main__':
         if o == '-D':
             debug_threads = True
             continue
-        if o == 'b':
+        if o == '-b':
             global_config['rcv_buf_size'] = int(a.strip())
             continue
 
