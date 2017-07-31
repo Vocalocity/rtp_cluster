@@ -29,7 +29,8 @@ from Rtp_cluster_config import read_cluster_config
 from Rtp_cluster import Rtp_cluster
 from Rtp_cluster_member import Rtp_cluster_member
 
-import getopt, os
+import getopt
+import os
 import sys
 import signal
 from pwd import getpwnam
@@ -48,6 +49,7 @@ from sippy_lite.Cli_server_local import Cli_server_local
 from sippy_lite.Signal import LogSignal
 from sippy_lite.SipLogger import SipLogger
 from sippy_lite.misc import daemonize
+
 
 class ClusterCLI(object):
     ccm = None
@@ -75,12 +77,14 @@ class ClusterCLI(object):
                 idx = 0
                 for rtp_cluster in self.rtp_clusters:
                     if idx > 0:
-                        clim.send('\n')                
+                        clim.send('\n')
                     clim.send('Cluster: #%d\n' % idx)
                     clim.send('    name = %s\n' % rtp_cluster.name)
                     clim.send('    address = %s\n' % str(rtp_cluster.address))
-                    clim.send('    active members = %d\n' % len(rtp_cluster.active))
-                    clim.send('    inactive members = %d\n' % len(rtp_cluster.pending))
+                    clim.send('    active members = %d\n' %
+                              len(rtp_cluster.active))
+                    clim.send('    inactive members = %d\n' %
+                              len(rtp_cluster.pending))
                     idx += 1
             else:
                 rtp_cluster, idx = self.cluster_by_name(parts[1])
@@ -92,18 +96,21 @@ class ClusterCLI(object):
                 for rtpp in rtp_cluster.active:
                     if ridx > 0:
                         clim.send('\n')
-                    clim.send(    '    RTPproxy: #%d\n' % ridx)
-                    clim.send(    '        name = %s\n' % rtpp.name)
-                    clim.send(    '        address = %s\n' % str(rtpp.address))
+                    clim.send('    RTPproxy: #%d\n' % ridx)
+                    clim.send('        name = %s\n' % rtpp.name)
+                    clim.send('        address = %s\n' % str(rtpp.address))
                     if rtpp.wan_address != None:
-                        clim.send('        wan_address = %s\n' % rtpp.wan_address)
+                        clim.send('        wan_address = %s\n' %
+                                  rtpp.wan_address)
                     if rtpp.lan_address != None:
-                        clim.send('        lan_address = %s\n' % rtpp.lan_address)
+                        clim.send('        lan_address = %s\n' %
+                                  rtpp.lan_address)
                     if rtpp.cmd_out_address != None:
-                        clim.send('        cmd_out_address = %s\n' % rtpp.cmd_out_address)
-                    clim.send(    '        weight = %d\n' % rtpp.weight)
-                    clim.send(    '        capacity = %d\n' % rtpp.capacity)
-                    clim.send(    '        state = ')
+                        clim.send('        cmd_out_address = %s\n' %
+                                  rtpp.cmd_out_address)
+                    clim.send('        weight = %d\n' % rtpp.weight)
+                    clim.send('        capacity = %d\n' % rtpp.capacity)
+                    clim.send('        state = ')
                     if rtpp.online:
                         clim.send('online\n')
                         clim.send('        active sessions = ')
@@ -111,8 +118,10 @@ class ClusterCLI(object):
                             clim.send('UNKNOWN\n')
                         else:
                             clim.send('%d\n' % rtpp.active_sessions)
-                        clim.send('        capacity utilization = %f%%\n' % (rtpp.get_caputil() * 100.0))
-                        clim.send('        average rtpc delay = %f sec\n' % rtpp.get_rtpc_delay())
+                        clim.send('        capacity utilization = %f%%\n' %
+                                  (rtpp.get_caputil() * 100.0))
+                        clim.send('        average rtpc delay = %f sec\n' %
+                                  rtpp.get_rtpc_delay())
                     else:
                         clim.send('offline\n')
                     clim.send('        status = %s\n' % rtpp.status)
@@ -122,18 +131,21 @@ class ClusterCLI(object):
                 for rtpp in rtp_cluster.pending:
                     if ridx > 0:
                         clim.send('\n')
-                    clim.send(    '    RTPproxy: #%d\n' % ridx)
-                    clim.send(    '        name = %s\n' % rtpp.name)
-                    clim.send(    '        address = %s\n' % str(rtpp.address))
+                    clim.send('    RTPproxy: #%d\n' % ridx)
+                    clim.send('        name = %s\n' % rtpp.name)
+                    clim.send('        address = %s\n' % str(rtpp.address))
                     if rtpp.wan_address != None:
-                        clim.send('        wan_address = %s\n' % rtpp.wan_address)
+                        clim.send('        wan_address = %s\n' %
+                                  rtpp.wan_address)
                     if rtpp.lan_address != None:
-                        clim.send('        lan_address = %s\n' % rtpp.lan_address)
+                        clim.send('        lan_address = %s\n' %
+                                  rtpp.lan_address)
                     if rtpp.cmd_out_address != None:
-                        clim.send('        cmd_out_address = %s\n' % rtpp.cmd_out_address)
-                    clim.send(    '        weight = %d\n' % rtpp.weight)
-                    clim.send(    '        capacity = %d\n' % rtpp.capacity)
-                    clim.send(    '        state = ')
+                        clim.send('        cmd_out_address = %s\n' %
+                                  rtpp.cmd_out_address)
+                    clim.send('        weight = %d\n' % rtpp.weight)
+                    clim.send('        capacity = %d\n' % rtpp.capacity)
+                    clim.send('        state = ')
                     if rtpp.online:
                         clim.send('online\n')
                     else:
@@ -154,11 +166,13 @@ class ClusterCLI(object):
                 rtpp_config = dict([x.split('=') for x in kvs])
                 rtpp, idx = rtp_cluster.rtpp_by_name(rtpp_config['name'])
                 if rtpp != None:
-                    clim.send('ERROR: %s: RTPproxy already exists\n' % rtpp_config['name'])
+                    clim.send('ERROR: %s: RTPproxy already exists\n' %
+                              rtpp_config['name'])
                     return False
                 if rtpp_config['protocol'] not in ('unix', 'udp'):
-                    raise Exception('Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
-                if rtpp_config['protocol']  == 'udp':
+                    raise Exception(
+                        'Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
+                if rtpp_config['protocol'] == 'udp':
                     address = rtpp_config['address'].split(':', 1)
                     if len(address) == 1:
                         address.append(22222)
@@ -171,7 +185,8 @@ class ClusterCLI(object):
                     bind_address = rtpp_config['cmd_out_address']
                 else:
                     bind_address = None
-                rtpp = Rtp_cluster_member(rtpp_config['name'], global_config, address, bind_address)
+                rtpp = Rtp_cluster_member(
+                    rtpp_config['name'], global_config, address, bind_address)
                 if rtpp_config.has_key('wan_address'):
                     rtpp.wan_address = rtpp_config['wan_address']
                 if rtpp_config.has_key('lan_address'):
@@ -195,11 +210,11 @@ class ClusterCLI(object):
                 clim.send('OK\n')
                 return False
         if cmd in ('h', 'help'):
-            clim.send('Supported commands:\n' \
-            '\tls [CLUSTER_NAME]\n' \
-            '\tmodify CLUSTER_NAME [add|remove|delete|pause|resume] ARGS\n' \
-            '\treload\n' \
-            '\tquit\n')
+            clim.send('Supported commands:\n'
+                      '\tls [CLUSTER_NAME]\n'
+                      '\tmodify CLUSTER_NAME [add|remove|delete|pause|resume] ARGS\n'
+                      '\treload\n'
+                      '\tquit\n')
             return False
         if cmd in ('q', 'quit', 'exit'):
             clim.close()
@@ -212,16 +227,18 @@ class ClusterCLI(object):
             for c in config:
                 rtp_cluster, idx = self.cluster_by_name(c['name'])
                 if rtp_cluster == None:
-                    rtp_cluster = Rtp_cluster(global_config, c['name'], c['address'], \
-                      dnconfig = c.get('dnconfig', None))
+                    rtp_cluster = Rtp_cluster(global_config, c['name'], c['address'],
+                                              dnconfig=c.get('dnconfig', None))
                 else:
                     rtp_cluster.update_dnrelay(c.get('dnconfig', None))
-                rtp_cluster.capacity_limit_soft = c.get('capacity_limit_soft', True)
+                rtp_cluster.capacity_limit_soft = c.get(
+                    'capacity_limit_soft', True)
                 new_rtpps = []
                 for rtpp_config in c['rtpproxies']:
                     #Rtp_cluster_member('rtpproxy1', global_config, ('127.0.0.1', 22222))
                     if rtpp_config['protocol'] not in ('unix', 'udp'):
-                        raise Exception('Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
+                        raise Exception(
+                            'Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
                     if rtpp_config['protocol'] == 'udp':
                         address = rtpp_config['address'].split(':', 1)
                         if len(address) == 1:
@@ -237,7 +254,8 @@ class ClusterCLI(object):
                             bind_address = rtpp_config['cmd_out_address']
                         else:
                             bind_address = None
-                        rtpp = Rtp_cluster_member(rtpp_config['name'], global_config, address, bind_address)
+                        rtpp = Rtp_cluster_member(
+                            rtpp_config['name'], global_config, address, bind_address)
                         rtpp.weight = rtpp_config['weight']
                         rtpp.capacity = rtpp_config['capacity']
                         if rtpp_config.has_key('wan_address'):
@@ -269,7 +287,8 @@ class ClusterCLI(object):
             for rtp_cluster in [x for x in self.rtp_clusters if x not in new_rtp_clusters]:
                 rtp_cluster.shutdown()
             self.rtp_clusters = new_rtp_clusters
-            clim.send('Loaded %d clusters and %d RTP proxies\n' % (len(self.rtp_clusters), new_rtpps_count))
+            clim.send('Loaded %d clusters and %d RTP proxies\n' %
+                      (len(self.rtp_clusters), new_rtpps_count))
             clim.send('OK\n')
             return False
         if cmd.startswith('objstats'):
@@ -279,7 +298,7 @@ class ClusterCLI(object):
             else:
                 limit = 20
             stats = sorted(typestats().items(), key=operator.itemgetter(1),
-              reverse=True)
+                           reverse=True)
             stats = stats[:limit]
             width = max(len(name) for name, count in stats)
             for name, count in stats[:limit]:
@@ -288,21 +307,26 @@ class ClusterCLI(object):
         clim.send('ERROR: unknown command\n')
         return False
 
+
 class fakecli(object):
     rtp_clusters = None
 
     def __init__(self):
         self.rtp_clusters = []
 
+
 def usage():
-    print('usage: rtp_cluster.py [-fd] [-P pidfile] [-c conffile] [-L logfile] [-s cmd_socket]\n' \
+    print('usage: rtp_cluster.py [-fd] [-P pidfile] [-c conffile] [-L logfile] [-s cmd_socket]\n'
           '        [-o uname:gname]')
     sys.exit(1)
 
+
 def debug_signal(signum, frame):
-    import sys, traceback
+    import sys
+    import traceback
     for thread_id, stack in sys._current_frames().iteritems():
         print 'Thread id: %s\n%s' % (thread_id, ''.join(traceback.format_stack(stack)))
+
 
 def reopen(signum, logfile):
     print 'Signal %d received, reopening logs' % signum
@@ -314,6 +338,7 @@ def reopen(signum, logfile):
     fd = fake_stdout.fileno()
     os.dup2(fd, sys.__stdout__.fileno())
     os.dup2(fd, sys.__stderr__.fileno())
+
 
 if __name__ == '__main__':
     global_config = {}
@@ -365,80 +390,88 @@ if __name__ == '__main__':
             debug_threads = True
             continue
 
-	try:
-		with PidFile(pidfile):
+    try:
+        with PidFile(pidfile):
 
-			sip_logger.write(' o reading config "%s"...' % \
-			  global_config['conffile'])
+            sip_logger.write(' o reading config "%s"...' %
+                             global_config['conffile'])
 
-			global_config['_sip_logger'] = sip_logger
-			f = open(global_config['conffile'])
-			config = read_cluster_config(global_config, f.read())
+            global_config['_sip_logger'] = sip_logger
+            f = open(global_config['conffile'])
+            config = read_cluster_config(global_config, f.read())
 
-			if not foreground:
-				# Shut down the logger and reopen it again to make sure it's worker
-				# thread won't be affected by the fork()
-				sip_logger.shutdown()
-				daemonize(logfile = logfile)
-				file(pidfile, 'w').write(str(os.getpid()) + '\n')
-				sip_logger = SipLogger('rtp_cluster')
-				global_config['_sip_logger'] = sip_logger
-				LogSignal(sip_logger, signal.SIGUSR1, reopen, logfile)
+            if not foreground:
+                # Shut down the logger and reopen it again to make sure it's worker
+                # thread won't be affected by the fork()
+                sip_logger.shutdown()
+                daemonize(logfile=logfile)
+                file(pidfile, 'w').write(str(os.getpid()) + '\n')
+                sip_logger = SipLogger('rtp_cluster')
+                global_config['_sip_logger'] = sip_logger
+                LogSignal(sip_logger, signal.SIGUSR1, reopen, logfile)
 
-			sip_logger.write(' o initializing CLI...')
+            sip_logger.write(' o initializing CLI...')
 
-			if not dry_run:
-				cli = ClusterCLI(global_config, address = csockfile)
-			else:
-				cli = fakecli()
+            if not dry_run:
+                cli = ClusterCLI(global_config, address=csockfile)
+            else:
+                cli = fakecli()
 
-			for c in config:
-				#print 'Rtp_cluster', global_config, c['name'], c['address']
-				sip_logger.write(' o initializing cluster "%s" at <%s>' % (c['name'], c['address']))
-				rtp_cluster = Rtp_cluster(global_config, c['name'], c['address'], \
-				  dnconfig = c.get('dnconfig', None), dry_run = dry_run)
-				rtp_cluster.capacity_limit_soft = c.get('capacity_limit_soft', True)
-				for rtpp_config in c['rtpproxies']:
-					sip_logger.write('  - adding RTPproxy member %s at <%s>' % (rtpp_config['name'], rtpp_config['address']))
-					#Rtp_cluster_member('rtpproxy1', global_config, ('127.0.0.1', 22222))
-					if rtpp_config['protocol'] not in ('unix', 'udp'):
-						raise Exception('Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
-					if rtpp_config['protocol'] == 'udp':
-						address = rtpp_config['address'].split(':', 1)
-						if len(address) == 1:
-							address.append(22222)
-						else:
-							address[1] = int(address[1])
-						address = tuple(address)
-					else:
-						address = rtpp_config['address']
-					if rtpp_config.has_key('cmd_out_address'):
-						bind_address = rtpp_config['cmd_out_address']
-					else:
-						bind_address = None
-					rtpp = Rtp_cluster_member(rtpp_config['name'], global_config, address, bind_address)
-					rtpp.weight = rtpp_config['weight']
-					rtpp.capacity = rtpp_config['capacity']
-					if rtpp_config.has_key('wan_address'):
-						rtpp.wan_address = rtpp_config['wan_address']
-					if rtpp_config.has_key('lan_address'):
-						rtpp.lan_address = rtpp_config['lan_address']
-					rtp_cluster.add_member(rtpp)
-				cli.rtp_clusters.append(rtp_cluster)
-			#rtp_cluster = Rtp_cluster(global_config, 'supercluster', dry_run = dry_run)
-			if dry_run:
-				sip_logger.write('Configuration check is complete, no errors found')
-				for rtp_cluster in cli.rtp_clusters:
-					rtp_cluster.shutdown()
-				sip_logger.shutdown()
-				from time import sleep
-				# Give worker threads some time to cease&desist
-				sleep(0.1)
-				sys.exit(0)
-			if debug_threads:
-				signal.signal(signal.SIGINFO, debug_signal)
-			sip_logger.write('Initialization complete, have a good flight.')
-			reactor.run(installSignalHandlers = True)
+            for c in config:
+                # print 'Rtp_cluster', global_config, c['name'], c['address']
+                sip_logger.write(' o initializing cluster "%s" at <%s>' % (
+                    c['name'], c['address']))
+                rtp_cluster = Rtp_cluster(global_config, c['name'], c['address'],
+                                          dnconfig=c.get('dnconfig', None), dry_run=dry_run)
+                rtp_cluster.capacity_limit_soft = c.get(
+                    'capacity_limit_soft', True)
+                for rtpp_config in c['rtpproxies']:
+                    sip_logger.write('  - adding RTPproxy member %s at <%s>' %
+                                     (rtpp_config['name'], rtpp_config['address']))
+                    #Rtp_cluster_member('rtpproxy1', global_config, ('127.0.0.1', 22222))
+                    if rtpp_config['protocol'] not in ('unix', 'udp'):
+                        raise Exception(
+                            'Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
+                    if rtpp_config['protocol'] == 'udp':
+                        address = rtpp_config['address'].split(':', 1)
+                        if len(address) == 1:
+                            address.append(22222)
+                        else:
+                            address[1] = int(address[1])
+                        address = tuple(address)
+                    else:
+                        address = rtpp_config['address']
+                    if rtpp_config.has_key('cmd_out_address'):
+                        bind_address = rtpp_config['cmd_out_address']
+                    else:
+                        bind_address = None
+                    rtpp = Rtp_cluster_member(
+                        rtpp_config['name'], global_config, address, bind_address)
+                    rtpp.weight = rtpp_config['weight']
+                    rtpp.capacity = rtpp_config['capacity']
+                    if rtpp_config.has_key('wan_address'):
+                        rtpp.wan_address = rtpp_config['wan_address']
+                    if rtpp_config.has_key('lan_address'):
+                        rtpp.lan_address = rtpp_config['lan_address']
+                    rtp_cluster.add_member(rtpp)
+                cli.rtp_clusters.append(rtp_cluster)
+            #rtp_cluster = Rtp_cluster(global_config, 'supercluster', dry_run = dry_run)
+            if dry_run:
+                sip_logger.write(
+                    'Configuration check is complete, no errors found')
+                for rtp_cluster in cli.rtp_clusters:
+                    rtp_cluster.shutdown()
+                sip_logger.shutdown()
+                from time import sleep
+                # Give worker threads some time to cease&desist
+                sleep(0.1)
+                sys.exit(0)
+            if debug_threads:
+                signal.signal(signal.SIGINFO, debug_signal)
+            sip_logger.write(
+                'Initialization complete, have a good flight.')
+            reactor.run(installSignalHandlers=True)
 
-	except:
-		sip_logger.write('Initialization failed, unable to lock pidfile, is another RTPCluster running ?')
+    except:
+        sip_logger.write(
+            'Initialization failed, unable to lock pidfile, is another RTPCluster running ?')
