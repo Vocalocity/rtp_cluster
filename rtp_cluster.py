@@ -34,7 +34,6 @@ import sys
 import signal
 from pwd import getpwnam
 from grp import getgrnam
-from pid import PidFile
 from socket import AF_INET, AF_INET6, AF_UNIX
 
 from twisted.internet import reactor
@@ -127,9 +126,6 @@ if __name__ == '__main__':
             global_config['rcv_buf_size'] = int(a.strip())
             continue
 
-    try:
-        with PidFile(pidfile):
-
             sip_logger.write(' o reading config "%s"...' % \
               global_config['conffile'])
 
@@ -146,67 +142,64 @@ if __name__ == '__main__':
                 sip_logger = SipLogger('rtp_cluster')
                 global_config['_sip_logger'] = sip_logger
                 LogSignal(sip_logger, signal.SIGUSR1, reopen, logfile)
+        
+        sip_logger.write(' o initializing CLI...')
 
-            sip_logger.write(' o initializing CLI...')
+        if not dry_run:
+            cli = Rtp_cluster_cli(global_config, address = csockfile)
+        else:
+            cli = fakecli()
 
-            if not dry_run:
-                cli = Rtp_cluster_cli(global_config, address = csockfile)
-            else:
-                cli = fakecli()
-
-            for c in config:
-                #print 'Rtp_cluster', global_config, c['name'], c['address']
-                sip_logger.write(' o initializing cluster "%s" at <%s>' % (c['name'], c['address']))
-                rtp_cluster = Rtp_cluster(global_config, c['name'], c['address'], \
-                  dnconfig = c.get('dnconfig', None), dry_run = dry_run)
-                rtp_cluster.capacity_limit_soft = c.get('capacity_limit_soft', True)
-                for rtpp_config in c['rtpproxies']:
-                    sip_logger.write('  - adding RTPproxy member %s at <%s>' % (rtpp_config['name'], rtpp_config['address']))
-                    #Rtp_cluster_member('rtpproxy1', global_config, ('127.0.0.1', 22222))
-                    if rtpp_config['protocol'] not in ('unix', 'udp', 'udp6'):
-                        raise Exception('Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
-                    if rtpp_config['protocol'] in ('udp', 'udp6'):
-                        address = rtpp_config['address'].rsplit(':', 1)
-                        if len(address) == 1:
-                            address.append(22222)
-                        else:
-                            address[1] = int(address[1])
-                        address = tuple(address)
-                        if rtpp_config['protocol'] == 'udp':
-                            family = AF_INET
-                        else:
-                            family = AF_INET6
+        for c in config:
+            #print 'Rtp_cluster', global_config, c['name'], c['address']
+            sip_logger.write(' o initializing cluster "%s" at <%s>' % (c['name'], c['address']))
+            rtp_cluster = Rtp_cluster(global_config, c['name'], c['address'], \
+              dnconfig = c.get('dnconfig', None), dry_run = dry_run)
+            rtp_cluster.capacity_limit_soft = c.get('capacity_limit_soft', True)
+            for rtpp_config in c['rtpproxies']:
+                sip_logger.write('  - adding RTPproxy member %s at <%s>' % (rtpp_config['name'], rtpp_config['address']))
+                #Rtp_cluster_member('rtpproxy1', global_config, ('127.0.0.1', 22222))
+                if rtpp_config['protocol'] not in ('unix', 'udp', 'udp6'):
+                    raise Exception('Unsupported RTPproxy protocol: "%s"' % rtpp_config['protocol'])
+                if rtpp_config['protocol'] in ('udp', 'udp6'):
+                    address = rtpp_config['address'].rsplit(':', 1)
+                    if len(address) == 1:
+                        address.append(22222)
                     else:
-                        address = rtpp_config['address']
-                        family = AF_UNIX
-                    if rtpp_config.has_key('cmd_out_address'):
-                        bind_address = rtpp_config['cmd_out_address']
+                        address[1] = int(address[1])
+                    address = tuple(address)
+                    if rtpp_config['protocol'] == 'udp':
+                        family = AF_INET
                     else:
-                        bind_address = None
-                    rtpp = Rtp_cluster_member(rtpp_config['name'], global_config, address, bind_address, family = family)
-                    rtpp.weight = rtpp_config['weight']
-                    rtpp.capacity = rtpp_config['capacity']
-                    if rtpp_config.has_key('wan_address'):
-                        rtpp.wan_address = rtpp_config['wan_address']
-                    if rtpp_config.has_key('lan_address'):
-                        rtpp.lan_address = rtpp_config['lan_address']
-                    rtp_cluster.add_member(rtpp)
-                cli.rtp_clusters.append(rtp_cluster)
-            #rtp_cluster = Rtp_cluster(global_config, 'supercluster', dry_run = dry_run)
-            if dry_run:
-                sip_logger.write('Configuration check is complete, no errors found')
-                for rtp_cluster in cli.rtp_clusters:
-                    rtp_cluster.shutdown()
-                sip_logger.shutdown()
-                from time import sleep
-                # Give worker threads some time to cease&desist
-                sleep(0.1)
-                sys.exit(0)
-            if debug_threads:
-                signal.signal(signal.SIGINFO, debug_signal)
-            sip_logger.write('Initialization complete, have a good flight.')
-            reactor.run(installSignalHandlers = True)
-    except:
-        sip_logger.write('Initialization failed, could lock pidfile: "%s", perhaps another copy of RTPCluster is running'
-        % pidfile)
+                        family = AF_INET6
+                else:
+                    address = rtpp_config['address']
+                    family = AF_UNIX
+                if rtpp_config.has_key('cmd_out_address'):
+                    bind_address = rtpp_config['cmd_out_address']
+                else:
+                    bind_address = None
+                rtpp = Rtp_cluster_member(rtpp_config['name'], global_config, address, bind_address, family = family)
+                rtpp.weight = rtpp_config['weight']
+                rtpp.capacity = rtpp_config['capacity']
+                if rtpp_config.has_key('wan_address'):
+                    rtpp.wan_address = rtpp_config['wan_address']
+                if rtpp_config.has_key('lan_address'):
+                    rtpp.lan_address = rtpp_config['lan_address']
+                rtp_cluster.add_member(rtpp)
+            cli.rtp_clusters.append(rtp_cluster)
+        #rtp_cluster = Rtp_cluster(global_config, 'supercluster', dry_run = dry_run)
+        if dry_run:
+            sip_logger.write('Configuration check is complete, no errors found')
+            for rtp_cluster in cli.rtp_clusters:
+                rtp_cluster.shutdown()
+            sip_logger.shutdown()
+            from time import sleep
+            # Give worker threads some time to cease&desist
+            sleep(0.1)
+            sys.exit(0)
+        if debug_threads:
+            signal.signal(signal.SIGINFO, debug_signal)
+        sip_logger.write('Initialization complete, have a good flight.')
+        reactor.run(installSignalHandlers = True)
 
