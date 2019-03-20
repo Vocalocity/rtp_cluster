@@ -34,7 +34,6 @@ import sys
 import signal
 from pwd import getpwnam
 from grp import getgrnam
-from pid import PidFile
 from socket import AF_INET, AF_INET6, AF_UNIX
 
 from twisted.internet import reactor
